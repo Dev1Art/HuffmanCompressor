@@ -4,7 +4,7 @@ import java.awt.*;
 import java.util.HashSet;
 
 /**
- * @author Artem
+ * @author Dev1Art
  * @project HuffCompressor
  */
 public class Constants {
@@ -66,5 +66,7 @@ public class Constants {
     public final static Dimension BUTTON_SIZE = new Dimension(150, 30);
     public final static Font FONT = new Font(Font.DIALOG_INPUT, Font.BOLD, 14);
     public final static String TIME_UNIT = " ms.";
+    public final static boolean COMPRESSION_ACTION = true;
+    public final static boolean DECOMPRESSION_ACTION = true;
 
 }
