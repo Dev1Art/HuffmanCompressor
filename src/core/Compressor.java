@@ -15,7 +15,7 @@ import java.util.ArrayList;
  */
 public class Compressor {
 
-    public static void compress(File src, OutStream binaryOut, ProgressCallback callback) {
+    public static void compress(File src, OutStream binaryOut) {
         if (null == src)
             throw new IllegalArgumentException("Null source file for compress");
 
@@ -24,7 +24,7 @@ public class Compressor {
             compressFile(src, binaryOut);
         } else if (src.isDirectory()) {
             // compress directory
-            compressDir(src, binaryOut, callback);
+            compressDir(src, binaryOut);
         } else
             throw new RuntimeException("Unknown kind of source");
     }
@@ -58,7 +58,7 @@ public class Compressor {
         binaryOut.write(isEmptyFile);
     }
 
-    private static void compressDir(File dir, OutStream binaryOut, ProgressCallback callback) {
+    private static void compressDir(File dir, OutStream binaryOut) {
         assert dir.isDirectory();
 
         File[] files = dir.listFiles();
@@ -82,11 +82,8 @@ public class Compressor {
 
         // compress each content respectively
         for (File file : list) {
-            compress(file, binaryOut, callback);
+            compress(file, binaryOut);
         }
-
-        // fill progress bar
-        callback.onProgress((length / files.length) * 100);
     }
 
     private static void writeDirHead(String dirName, int length, OutStream binaryOut) {
@@ -106,7 +103,7 @@ public class Compressor {
         }
     }
 
-    public static void decompress(File file, ProgressCallback callback) {
+    public static void decompress(File file) {
         if (null == file)
             throw new IllegalArgumentException("Null source file for decompress");
 
@@ -117,14 +114,13 @@ public class Compressor {
             throw new RuntimeException("Unsupported file suffix");
 
         File parent = new File(file.getAbsoluteFile().getParent());
-        decompress(parent, new InStream(file), callback);
+        decompress(parent, new InStream(file));
     }
 
-    private static void decompress(File parent, InStream binaryIn, ProgressCallback callback) {
+    private static void decompress(File parent, InStream binaryIn) {
         if (binaryIn.readBoolean() == Constants.FILE_BIT) {
             // expand single file
             decompressFile(parent, binaryIn);
-            callback.onProgress(1);
         } else {
             // decompress directory
             // get name info
@@ -145,7 +141,7 @@ public class Compressor {
                 // decompress each content respectively
                 int length = binaryIn.readInt();
                 for (int i = 0; i < length; ++i) {
-                    decompress(dir, binaryIn, callback);
+                    decompress(dir, binaryIn);
                 }
             }
         }
@@ -167,9 +163,5 @@ public class Compressor {
         }
 
         binaryOut.close();
-    }
-
-    public interface ProgressCallback {
-        void onProgress(int progress);
     }
 }

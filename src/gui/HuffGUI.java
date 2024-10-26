@@ -7,13 +7,12 @@ import io.OutStream;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,273 +22,241 @@ import java.util.logging.Logger;
  */
 
 public class HuffGUI extends JFrame {
-    private final JTextField filePathField;
-    private final JTextArea outputArea;
-    private final JButton selectDirButton;
-    private final JButton compressButton;
-    private final JButton decompressButton;
-    private final JButton exitButton;
-    private final JProgressBar progressBar;
-    private final Logger LOGGER = Logger.getLogger(HuffGUI.class.getName());
+    private JTextField dirPathField;
+    private JProgressBar progressBar;
+    private JTextArea outputArea;
+    private JButton selectButton;
+    private JButton compressButton;
+    private JButton decompressButton;
+    private JButton exitButton;
+    private File packToCompress;
+    private File saveTo;
+    private static final Logger LOGGER = Logger.getLogger(HuffGUI.class.getName());
 
     public HuffGUI() {
-        // main frame
+        huffGUISetup();                         // sets up the main frame
+        add(createDirectorySelectionPanel());   // panel for directory selection
+        add(createProgressBarPanel());          // progress bar
+        add(createOutputArea());                // output area
+        add(createButtonsPanel());              // buttons for compressing, decompressing and exit
+        // Action listeners
+        selectButton.addActionListener(action -> handleFileSelection());
+        compressButton.addActionListener(action -> handleCompressAction());
+        decompressButton.addActionListener(action -> handleDecompressionAction());
+        exitButton.addActionListener(action -> handleExitAction());
+    }
+
+    private void huffGUISetup() {
         setTitle("Huffman Compression");
         setSize(500, 400);
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+    }
 
-        // Panel for file selection
-        JPanel panel1 = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filePathField = new JTextField(35);
-        selectDirButton = new JButton("Select");
-        selectDirButton.setBackground(Constants.BACKGROUND);
-        selectDirButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                selectDirButton.setBackground(Constants.BACKGROUND_HOVER);
-            }
+    private JPanel createDirectorySelectionPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // field for the absolute path of the directory
+        dirPathField = new JTextField(35);
+        // button for directory selection
+        selectButton = new JButton("Select");
+        selectButton.setBackground(Constants.BACKGROUND);
+        selectButton.addMouseListener(createHoverEffectsListener());
+        selectButton.setPreferredSize(new Dimension(100, 30));
+        // adding
+        panel.add(dirPathField);
+        panel.add(selectButton);
+        return panel;
+    }
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                selectDirButton.setBackground(Constants.BACKGROUND);
-            }
-        });
-        selectDirButton.setPreferredSize(new Dimension(100, 30));
-        panel1.add(filePathField);
-        panel1.add(selectDirButton);
-        add(panel1);
-
+    private JPanel createProgressBarPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new FlowLayout(FlowLayout.CENTER));
         // progress bar
-        JPanel panel2 = new JPanel();
-        panel2.setLayout(new FlowLayout(FlowLayout.CENTER));
-        progressBar = new JProgressBar(0);
+        progressBar = new JProgressBar(0, 100);
         progressBar.setValue(0);
         progressBar.setStringPainted(true);
         progressBar.setPreferredSize(new Dimension(470, 20));
         progressBar.setBackground(Constants.BACKGROUND);
         progressBar.setForeground(Constants.PROGRESS_BAR_FILLER);
-        panel2.add(progressBar);
-        add(panel2);
+        // adding
+        panel.add(progressBar);
+        return panel;
+    }
 
-        // Output area
-        JPanel panel3 = new JPanel();
-        panel3.setLayout(new BorderLayout());
+    private JPanel createOutputArea() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        // area for the app output
         outputArea = new JTextArea();
         outputArea.setEditable(false);
+        // makes view scrollable
         JScrollPane jScrollPane = new JScrollPane(outputArea);
-        panel3.add(jScrollPane);
-        add(panel3, BorderLayout.CENTER);
+        // adding
+        panel.add(jScrollPane);
+        return panel;
+    }
 
-        // Buttons for compressing, decompressing and exit
-        JPanel panel4 = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    private JPanel createButtonsPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        // compression button
         compressButton = new JButton("Compress");
         compressButton.setBackground(Constants.BACKGROUND);
-        compressButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                compressButton.setBackground(Constants.BACKGROUND_HOVER);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                compressButton.setBackground(Constants.BACKGROUND);
-            }
-        });
+        compressButton.addMouseListener(createHoverEffectsListener());
         compressButton.setPreferredSize(Constants.BUTTON_SIZE);
+        // decompression button
         decompressButton = new JButton("Decompress");
         decompressButton.setBackground(Constants.BACKGROUND);
-        decompressButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                decompressButton.setBackground(Constants.BACKGROUND_HOVER);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                decompressButton.setBackground(Constants.BACKGROUND);
-            }
-        });
+        decompressButton.addMouseListener(createHoverEffectsListener());
         decompressButton.setPreferredSize(Constants.BUTTON_SIZE);
+        // exit button
         exitButton = new JButton("Exit");
         exitButton.setBackground(Constants.BACKGROUND);
-        exitButton.addMouseListener(new MouseAdapter() {
+        exitButton.addMouseListener(createHoverEffectsListener());
+        exitButton.setPreferredSize(Constants.BUTTON_SIZE);
+        // adding to the panel
+        panel.add(compressButton);
+        panel.add(decompressButton);
+        panel.add(exitButton);
+        return panel;
+    }
+
+    private MouseListener createHoverEffectsListener() {
+        return new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                exitButton.setBackground(Constants.BACKGROUND_HOVER);
+                ((JButton) e.getSource()).setBackground(Constants.BACKGROUND_HOVER);
             }
-
             @Override
             public void mouseExited(MouseEvent e) {
-                exitButton.setBackground(Constants.BACKGROUND);
+                ((JButton) e.getSource()).setBackground(Constants.BACKGROUND);
             }
-        });
-        exitButton.setPreferredSize(Constants.BUTTON_SIZE);
-        panel4.add(compressButton);
-        panel4.add(decompressButton);
-        panel4.add(exitButton);
-        add(panel4, BorderLayout.SOUTH);
-
-        // Action listeners
-        selectDirButton.addActionListener(new SelectFileAction());
-        compressButton.addActionListener(new CompressAction());
-        decompressButton.addActionListener(new DecompressAction());
-        exitButton.addActionListener(new ExitAction());
+        };
     }
 
-    private class SelectFileAction implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-            chooser.setDialogTitle("Choose a Directory or a File to compress");
-            chooser.setAcceptAllFileFilterUsed(false); // Disable the "All Files" option
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Only allow directories
+    private void handleFileSelection() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+        chooser.setDialogTitle("Choose a Directory or a File to compress");
+        chooser.setAcceptAllFileFilterUsed(false); // Disable the "All Files" option
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Only allow directories
 
-            int returnValue = chooser.showOpenDialog(null);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-                File selectedDirectory = chooser.getSelectedFile();
-                filePathField.setText(selectedDirectory.getAbsolutePath()); // Display selected directory path
-            } else {
-                filePathField.setText(null);
-                outputArea.setText("Selection canceled.");
-            }
+        int returnValue = chooser.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedDirectory = chooser.getSelectedFile();
+            dirPathField.setText(selectedDirectory.getAbsolutePath()); // Display selected directory path
+        } else {
+            dirPathField.setText(null);
+            outputArea.setText("Selection canceled.");
         }
     }
 
-    private class Task extends SwingWorker<Void, Integer> {
-        private File packToCompress;
-        private int fileAmount = 1;
-        private File saveTo;
-        private OutStream out;
-        private Action action;
-        private Task(Action action) {
-            this.action = action;
+    private void handleCompressAction() {
+        // case for the empty path
+        if (dirPathField.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(HuffGUI.this, "Nothing to compress!");
+            return;
         }
+        // sets up the pack to compress
+        packToCompress = new File(dirPathField.getText());
+        // request for directory to save, where will be created file compressed.huff
+        invokeChooser("Select a Directory to save compressed data");
+        // sets up directory for saving
+        saveTo = new File(dirPathField.getText() + "\\compressed.huff");
+        OutStream out = new OutStream(saveTo);
+        // perform compression
+        try {
+            // compression time
+            long startTime = System.currentTimeMillis();
+            Compressor.compress(packToCompress, out);
+            long endTime = System.currentTimeMillis();
+            long time = endTime - startTime;
+            // simple progress bar filler
+            createProgressBarWorker().execute();
+            // success compression
+            outputArea.setText("Compression successfully completed!");
+            outputArea.append("\n" + "Compressed to: " + dirPathField.getText());
+            outputArea.append("\n" + "Elapsed time: " + time + Constants.TIME_UNIT);
+            outputArea.append("\n" + "Compression ratio: " + ratio());
+            outputArea.setFont(Constants.FONT);
 
-        @Override protected Void doInBackground() {
-            if(action == Action.COMPRESS) {
-                if(filePathField.getText().isEmpty()) {
-                    return null;
+        } catch (Exception ex) {
+            // errors handling
+            outputArea.setText("Error during compression!");
+            outputArea.append("\n" + "Nothing to compress or no directory for saving data.");
+            outputArea.setFont(Constants.FONT);
+            LOGGER.log(Level.WARNING, ex.getMessage());
+        }
+    }
+
+    private void handleDecompressionAction() {
+        // request for a .huff file directory
+        invokeChooser("Select a Directory of Huffman file (.huff) for decompressing");
+        // case for the empty path
+        if (dirPathField.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(HuffGUI.this, "Nothing to decompress!");
+            return;
+        }
+        // sets up file to decompress with .huff format
+        File compressedFile = new File(dirPathField.getText() + "\\compressed.huff");
+        // perform decompression
+        try {
+            Compressor.decompress(compressedFile);
+        } catch (NoSuchElementException ex) {
+            // InStream throws exception for the last character if N = 8
+            // This catch block gets rid of that. Will be fixed.
+            outputArea.setText("Successfully decompressed.");
+            outputArea.append("\n" + "Decompressed to: " + dirPathField.getText());
+        } catch (Exception ex) {
+            // errors handling
+            outputArea.append("\n" + "Error during decompression: " + ex.getMessage());
+            LOGGER.log(Level.WARNING, ex.getMessage());
+        }
+    }
+
+    private void handleExitAction() {
+        System.exit(0);
+    }
+
+    private void invokeChooser(String dialogTitle) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+        chooser.setDialogTitle(dialogTitle);
+        chooser.setAcceptAllFileFilterUsed(false); // Disable the "All Files" option
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Only allow directories
+        int returnValue = chooser.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedDirectory = chooser.getSelectedFile();
+            dirPathField.setText(selectedDirectory.getAbsolutePath()); // Display selected directory path
+        } else {
+            dirPathField.setText(null);
+            outputArea.setText("Selection canceled.");
+        }
+    }
+
+    private SwingWorker<Void, Integer> createProgressBarWorker() {
+        return new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                compressButton.setEnabled(false);
+                int totalFiles = Objects.requireNonNull(packToCompress.listFiles()).length;
+                for (int i = 0; i < totalFiles; i++) {
+                    publish((int) ((i + 1) * 100.0) / totalFiles);
                 }
-                // checks if button 'compress' pressed for no content in filePathField
-                packToCompress = new File(filePathField.getText());
-                // for progressbar increment
-                fileAmount = packToCompress.listFiles().length;
-                progressBar.setMaximum(fileAmount);
-                // request for directory to save, where will be created file compressed.huff
-                invokeChooser("Select a Directory to save compressed data");
-
-                saveTo = new File( filePathField.getText() + "\\compressed.huff"); // Save to current directory
-                out = new OutStream(saveTo);
-
-                // perform compression
-                try {
-                    long startTime = System.currentTimeMillis();
-                    Compressor.compress(packToCompress, out, this::updateProgress);
-                    long endTime = System.currentTimeMillis();
-                    long time = endTime - startTime;
-
-                    outputArea.setText("Compression successfully completed!");
-                    outputArea.append("\n" + "Compressed to: " + filePathField.getText());
-                    outputArea.append("\n" + "Elapsed time: " + time + Constants.TIME_UNIT);
-                    outputArea.append("\n" + "Compression ratio: " + ratio());
-                    outputArea.setFont(Constants.FONT);
-
-                } catch (Exception ex) {
-                    outputArea.setText("Error during compression!");
-                    outputArea.append("\n" + "Nothing to compress or no directory for saving data.");
-                    outputArea.setFont(Constants.FONT);
-                    LOGGER.log(Level.WARNING, ex.getMessage());
-                }
-            } else if (action == Action.DECOMPRESS) {
-                // request for a .huff file directory
-                invokeChooser("Select a Directory of Huffman file (.huff) for decompressing");
-                File compressedFile = new File(filePathField.getText() + "\\compressed.huff");
-                try {
-                    Compressor.decompress(compressedFile, this::updateProgress);
-                    outputArea.append("\n" + "Decompression complete.");
-                } catch (NoSuchElementException ex) {
-                    outputArea.append("\n" + "End of decompression.");
-                    outputArea.append("\n" + "Decompressed to: " + filePathField.getText());
-                } catch (Exception ex) {
-                    outputArea.append("\n" + "Error during decompression: " + ex.getMessage());
+                return null;
+            }
+            @Override
+            protected void process(List<Integer> chunks) {
+                for (Integer value : chunks) {
+                    progressBar.setValue(value);
                 }
             }
-            return null;
-        }
-
-        private void updateProgress(int progress) {
-            publish((progress/fileAmount)*100);
-        }
-
-        @Override protected void process(java.util.List<Integer> chunks) {
-            for (int value : chunks) {
-                progressBar.setValue(value);
+            @Override
+            protected void done() {
+                JOptionPane.showMessageDialog(HuffGUI.this, "Compression Completed!");
+                compressButton.setEnabled(true);
             }
-        }
-
-        @Override protected void done() {
-            if (action==Action.COMPRESS & filePathField.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Nothing to compress!");
-            } else if (action == Action.COMPRESS) {
-                JOptionPane.showMessageDialog(null, "Compression Completed!");
-                progressBar.setValue(0);
-            } else if (action == Action.DECOMPRESS & filePathField.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Nothing to decompress!");
-            } else if (action == Action.DECOMPRESS) {
-                JOptionPane.showMessageDialog(null, "Decompression Completed!");
-                progressBar.setValue(0);
-            }
-        }
-
-        private void invokeChooser(String dialogTitle) {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-            chooser.setDialogTitle(dialogTitle);
-            chooser.setAcceptAllFileFilterUsed(false); // Disable the "All Files" option
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Only allow directories
-
-            int returnValue = chooser.showOpenDialog(null);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-                File selectedDirectory = chooser.getSelectedFile();
-                filePathField.setText(selectedDirectory.getAbsolutePath()); // Display selected directory path
-            } else {
-                filePathField.setText(null);
-                outputArea.setText("Selection canceled.");
-            }
-        }
-
-        private String ratio() {
-            long newSize = saveTo.length();
-            Double ratio = ((double) newSize / getDirLength(packToCompress)) * 100;
-            DecimalFormat df = new DecimalFormat("0.00");
-            return df.format(ratio) + "%";
-        }
-    }
-
-    private class CompressAction implements ActionListener {
-        @Override public void actionPerformed(ActionEvent e) {
-            new Task(Action.COMPRESS).execute();
-        }
-    }
-
-    private class DecompressAction implements ActionListener {
-        @Override public void actionPerformed(ActionEvent e) {
-            new Task(Action.DECOMPRESS).execute();
-        }
-    }
-
-    private class ExitAction implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            System.exit(0);
-        }
-    }
-
-    private enum Action {
-        COMPRESS, DECOMPRESS
+        };
     }
 
     private long getDirLength(File file) {
@@ -309,11 +276,18 @@ public class HuffGUI extends JFrame {
         }
     }
 
+    private String ratio() {
+        long newSize = saveTo.length();
+        Double ratio = ((double) newSize / getDirLength(packToCompress)) * 100;
+        DecimalFormat df = new DecimalFormat("0.00");
+        return df.format(ratio) + "%";
+    }
+
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(new FlatMacDarkLaf());
         } catch (UnsupportedLookAndFeelException e) {
-            throw new RuntimeException(e);
+            LOGGER.log(Level.WARNING, e.getMessage());
         }
         SwingUtilities.invokeLater(() -> {
             HuffGUI gui = new HuffGUI();
