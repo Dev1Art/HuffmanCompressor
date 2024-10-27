@@ -47,6 +47,7 @@ public class HuffGUI extends JFrame {
     }
 
     private void huffGUISetup() {
+        setIconImage(new ImageIcon(Constants.GUI_ICON).getImage());
         setTitle("Huffman Compression");
         setSize(500, 400);
         setResizable(false);
@@ -57,11 +58,12 @@ public class HuffGUI extends JFrame {
     private JPanel createDirectorySelectionPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         // field for the absolute path of the directory
-        dirPathField = new JTextField(35);
+        dirPathField = new JTextField(37);
         // button for directory selection
         selectButton = new JButton("Select");
         selectButton.setBackground(Constants.BACKGROUND);
-        selectButton.addMouseListener(createHoverEffectsListener());
+        selectButton.setBorderPainted(false);
+        selectButton.addMouseListener(createEffectsListener());
         selectButton.setPreferredSize(new Dimension(100, 30));
         // adding
         panel.add(dirPathField);
@@ -102,17 +104,20 @@ public class HuffGUI extends JFrame {
         // compression button
         compressButton = new JButton("Compress");
         compressButton.setBackground(Constants.BACKGROUND);
-        compressButton.addMouseListener(createHoverEffectsListener());
+        compressButton.setBorderPainted(false);
+        compressButton.addMouseListener(createEffectsListener());
         compressButton.setPreferredSize(Constants.BUTTON_SIZE);
         // decompression button
         decompressButton = new JButton("Decompress");
         decompressButton.setBackground(Constants.BACKGROUND);
-        decompressButton.addMouseListener(createHoverEffectsListener());
+        decompressButton.setBorderPainted(false);
+        decompressButton.addMouseListener(createEffectsListener());
         decompressButton.setPreferredSize(Constants.BUTTON_SIZE);
         // exit button
         exitButton = new JButton("Exit");
         exitButton.setBackground(Constants.BACKGROUND);
-        exitButton.addMouseListener(createHoverEffectsListener());
+        exitButton.setBorderPainted(false);
+        exitButton.addMouseListener(createEffectsListener());
         exitButton.setPreferredSize(Constants.BUTTON_SIZE);
         // adding to the panel
         panel.add(compressButton);
@@ -121,8 +126,12 @@ public class HuffGUI extends JFrame {
         return panel;
     }
 
-    private MouseListener createHoverEffectsListener() {
+    private MouseListener createEffectsListener() {
         return new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                ((JButton) e.getSource()).setBackground(Constants.BACKGROUND_PRESSED);
+            }
             @Override
             public void mouseEntered(MouseEvent e) {
                 ((JButton) e.getSource()).setBackground(Constants.BACKGROUND_HOVER);
@@ -202,6 +211,8 @@ public class HuffGUI extends JFrame {
         // perform decompression
         try {
             Compressor.decompress(compressedFile);
+            // simple progress bar filler
+            createProgressBarWorker().execute();
         } catch (NoSuchElementException ex) {
             // InStream throws exception for the last character if N = 8
             // This catch block gets rid of that. Will be fixed.
@@ -286,6 +297,8 @@ public class HuffGUI extends JFrame {
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(new FlatMacDarkLaf());
+            UIManager.put("TextField.border", BorderFactory.createLineBorder(Constants.BACKGROUND_HOVER, 3));
+            UIManager.put("JTextArea.border", BorderFactory.createEmptyBorder());
         } catch (UnsupportedLookAndFeelException e) {
             LOGGER.log(Level.WARNING, e.getMessage());
         }

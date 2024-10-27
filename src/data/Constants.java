@@ -61,9 +61,11 @@ public class Constants {
 
     // GUI
     public final static Color BACKGROUND = new Color(66, 66, 66);
-    public final static Color BACKGROUND_HOVER = new Color(47, 79, 79);
-    public final static Color PROGRESS_BAR_FILLER = new Color(0, 128, 0);
+    public final static Color BACKGROUND_HOVER = new Color(89, 26, 149);
+    public final static Color BACKGROUND_PRESSED = new Color(60, 17, 101);
+    public final static Color PROGRESS_BAR_FILLER = new Color(89, 26, 149);
     public final static Dimension BUTTON_SIZE = new Dimension(150, 30);
     public final static Font FONT = new Font(Font.DIALOG_INPUT, Font.BOLD, 14);
     public final static String TIME_UNIT = " ms.";
+    public final static String GUI_ICON = "src\\data\\images\\icon.png";
 }
