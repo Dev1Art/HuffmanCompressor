@@ -208,6 +208,8 @@ public class HuffGUI extends JFrame {
         }
         // sets up file to decompress with .huff format
         File compressedFile = new File(dirPathField.getText() + "\\compressed.huff");
+        outputArea.setText("Compressed file size: " + compressedFile.length() + " byte");
+        outputArea.setFont(Constants.FONT);
         // perform decompression
         try {
             Compressor.decompress(compressedFile);
@@ -216,11 +218,13 @@ public class HuffGUI extends JFrame {
         } catch (NoSuchElementException ex) {
             // InStream throws exception for the last character if N = 8
             // This catch block gets rid of that. Will be fixed.
-            outputArea.setText("Successfully decompressed.");
+            outputArea.append("\n" + "Successfully decompressed.");
             outputArea.append("\n" + "Decompressed to: " + dirPathField.getText());
+            outputArea.setFont(Constants.FONT);
         } catch (Exception ex) {
             // errors handling
             outputArea.append("\n" + "Error during decompression: " + ex.getMessage());
+            outputArea.setFont(Constants.FONT);
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
     }
@@ -289,7 +293,7 @@ public class HuffGUI extends JFrame {
 
     private String ratio() {
         long newSize = saveTo.length();
-        Double ratio = ((double) newSize / getDirLength(packToCompress)) * 100;
+        Double ratio = 100 - (((double) newSize / getDirLength(packToCompress)) * 100);
         DecimalFormat df = new DecimalFormat("0.00");
         return df.format(ratio) + "%";
     }
