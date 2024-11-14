@@ -4,7 +4,6 @@ import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import core.Compressor;
 import data.Constants;
 import io.OutStream;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;

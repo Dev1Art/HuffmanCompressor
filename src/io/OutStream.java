@@ -17,17 +17,6 @@ public class OutStream {
     private int buffer;                // 8-bit buffer of bits to write out
     private int n;                     // number of bits remaining in buffer
 
-    public OutStream(String filename) {
-        try {
-            OutputStream os = new FileOutputStream(filename);
-            out = new BufferedOutputStream(os);
-        }
-        catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Error occurs while OutputStream initialization via file path", e);
-
-        }
-    }
-
     public OutStream(File file) {
         try {
             OutputStream os = new FileOutputStream(file);
@@ -115,25 +104,11 @@ public class OutStream {
         writeByte((x >>> 24) & 0xff);
         writeByte((x >>> 16) & 0xff);
         writeByte((x >>>  8) & 0xff);
-        writeByte((x >>>  0) & 0xff);
-    }
-
-    // Writes the r-bit int to the binary output stream.
-    public void write(int x, int r) {
-        if (r == 32) {
-            write(x);
-            return;
-        }
-        if (r < 1 || r > 32) throw new IllegalArgumentException("Illegal value for r = " + r);
-        if (x >= (1 << r))   throw new IllegalArgumentException("Illegal " + r + "-bit char = " + x);
-        for (int i = 0; i < r; i++) {
-            boolean bit = ((x >>> (r - i - 1)) & 1) == 1;
-            writeBit(bit);
-        }
+        writeByte((x) & 0xff);
     }
 
     public void write(char x) {
-        if (x < 0 || x >= 256) throw new IllegalArgumentException("Illegal 8-bit char = " + x);
+        if (x >= 256) throw new IllegalArgumentException("Illegal 8-bit char = " + x);
         writeByte(x);
     }
 

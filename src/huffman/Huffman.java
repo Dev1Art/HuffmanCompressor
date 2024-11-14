@@ -2,7 +2,6 @@ package huffman;
 
 import io.InStream;
 import io.OutStream;
-
 import java.util.PriorityQueue;
 
 /**

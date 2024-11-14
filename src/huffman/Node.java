@@ -22,7 +22,7 @@ public class Node implements Comparable<Node> {
         boolean inv_trie_state = !(((left == null) && (right == null)) || ((left != null) && (right != null)));
         if(inv_trie_state) throw new RuntimeException("Invalid tree state");
 
-        return (left == null) && (right == null);
+        return (left == null);
     }
 
     @Override

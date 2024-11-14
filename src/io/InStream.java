@@ -44,10 +44,6 @@ public final class InStream {
         }
     }
 
-    public boolean exists()  {
-        return in != null;
-    }
-
     public boolean isEmpty() {
         return buffer == EOF;
     }

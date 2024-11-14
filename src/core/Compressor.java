@@ -4,7 +4,6 @@ import data.Constants;
 import huffman.Huffman;
 import io.InStream;
 import io.OutStream;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
