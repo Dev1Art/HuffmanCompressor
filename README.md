@@ -50,15 +50,15 @@ java -jar target/huffman-compressor.jar decompress <input_dir> <output_dir>
 ```
 - <input_dir>: The path to the directory of the compressed file.
 - <output_dir>: The path where you want to save the decompressed directory.
-### 2. Example
-#### Here’s a quick example of how to compress and then decompress a file:
+### 2. Tests
+#### You can find some directories for in-place tests in test_cases zip archive. So before the tests you should unpack it. Here is the example how you can test it:
 #### Compress:
   ```bash
-java -jar target/huffman-compressor.jar compress dir_to_compress dir_for_compressed
+java -jar target/huffman-compressor.jar compress BIG_PACK SAVES
 ```
 #### Decompress:
   ```bash
-java -jar target/huffman-compressor.jar decompress dir_for_compressed dir_to_decompressed
+java -jar target/huffman-compressor.jar decompress SAVES SAVES
 ```
 #### Check that dir_to_decompressed matches the content of dir_to_compress.
 ## Credits
